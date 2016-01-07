@@ -14,3 +14,6 @@ protobufs go installation:
  
 The compiler plugin, protoc-gen-go, will be installed in $GOBIN, defaulting to $GOPATH/bin.
 It must be in your $PATH for the protocol compiler, protoc, to find it.
+
+4. to generate a serializer run:
+> protoc --go_out=. *.proto

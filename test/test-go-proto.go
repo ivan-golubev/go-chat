@@ -17,8 +17,7 @@ func check_error(err error) {
 func main() {
 	message := &gochat.TextMessage {
 		MessageUid: "message-id",
-		SenderId: 42,
-		SenderAddr: "127.0.0.1",
+		SenderId: 42,		
 		Timestamp: 100500,
 		Text: "This is the message text",
 	}

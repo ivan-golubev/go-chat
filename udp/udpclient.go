@@ -22,12 +22,16 @@ func main() {
 
     message := &gochat.TextMessage {
         MessageUid: "message-id",
-        SenderId: 42,
-        SenderAddr: "127.0.0.1",
+        SenderId: 42,        
         Timestamp: 100500,
         Text: "This is the message text",
     }
-    payload, err2 := proto.Marshal(message)
+    wrapper := &gochat.GenericMessage {
+        Type: gochat.GenericMessage_TEXT,
+        TextMessage: message,
+    }
+
+    payload, err2 := proto.Marshal(wrapper)
     check_error(err2)
 
 	_, err3 := conn.Write(payload)

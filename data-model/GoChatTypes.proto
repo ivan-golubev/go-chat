@@ -1,0 +1,40 @@
+syntax = "proto3";
+package gochat;
+
+message TextMessage {	
+	string message_uid = 1;
+	int32 sender_id = 2;
+	string sender_addr = 3;
+	int64 timestamp = 4;
+	string text = 5;
+}
+
+message SignInReq {
+	string user_name = 1;
+	string password = 2;
+}
+
+message SignInResp {
+	bool status = 1;
+	int32 user_id = 2;
+}
+
+message KeepAlive {
+	int32 user_id = 1;
+}
+
+message GenericMessage {
+	enum Type { 
+		TEXT = 0;
+		SIGN_IN_REQ = 1;
+		SIGN_IN_RESP = 2; 
+		KEEP_ALIVE = 3;
+	}
+
+	// Identifies which field is filled in.
+	Type type = 1;
+	TextMessage textMessage = 2;
+	SignInReq signInReq = 3;
+	SignInResp signInResp = 4;
+	KeepAlive keepAlive = 5;
+}
