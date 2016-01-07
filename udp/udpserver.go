@@ -4,6 +4,8 @@ import (
     "fmt"
     "net"
     "os"
+    "github.com/golang/protobuf/proto"
+    "github.com/ivan-golubev/go-chat/data-model"
 )
 
 func check_error(err error) {
@@ -23,8 +25,13 @@ func main() {
     buf := make([]byte, 1024)
  
     for {
-        n, addr, err3 := conn.ReadFromUDP(buf)
-        fmt.Println("Received ", string(buf[0:n]), " from ",addr)
+        n, addr, err3 := conn.ReadFromUDP(buf)        
         check_error(err3) 
+
+        unmarshalled_message := &gochat.TextMessage{}
+		err4 := proto.Unmarshal(buf[0:n], unmarshalled_message)
+		check_error(err4)
+
+		fmt.Println("Message text: ", unmarshalled_message.Text)
     }
 }
