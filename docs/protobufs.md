@@ -1,6 +1,7 @@
 Useful info on google protocol buffers
 ===================================================
 About google protocol buffers: https://developers.google.com/protocol-buffers/
+Go specifics: https://developers.google.com/protocol-buffers/docs/gotutorial
 
 protobufs go installation:
 
