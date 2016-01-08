@@ -17,10 +17,12 @@ message SignInReq {
 message SignInResp {
 	bool status = 1;
 	int32 user_id = 2;
+	string token = 3;
 }
 
 message KeepAlive {
 	int32 user_id = 1;
+	string token = 2;
 }
 
 message GenericMessage {
