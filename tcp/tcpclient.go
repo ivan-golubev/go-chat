@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 
@@ -46,18 +45,20 @@ func main() {
 	_, err4 := conn.Write(payload)
 	check_Error(err4)
 
-	result, err5 := ioutil.ReadAll(conn)
-	check_Error(err5)
+	var buf [1024]byte
+	for {
+		n, err5 := conn.Read(buf[0:])
+		check_Error(err5)
+		response := &model.GenericMessage{}
+		err6 := proto.Unmarshal(buf[0:n], response)
+		check_Error(err6)
 
-	response := &model.GenericMessage{}
-	err6 := proto.Unmarshal(result, response)
-	check_Error(err6)
-
-	if response.SignInResp.Status == true {
-		fmt.Println("Authenticated with id:", response.SignInResp.UserId, " and token:", response.SignInResp.Token)
-	} else {
-		fmt.Println("Authentication failed!")
+		if response.SignInResp.Status == true {
+			fmt.Println("Authenticated with id:", response.SignInResp.UserId, " and token:", response.SignInResp.Token)
+		} else {
+			fmt.Println("Authentication failed!")
+		}
 	}
-
+	conn.Close()
 	os.Exit(0)
 }
