@@ -10,7 +10,7 @@ import (
 	"github.com/ivan-golubev/go-chat/data-model"
 )
 
-func checkError(err error) {
+func check_Error(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
@@ -25,10 +25,10 @@ func main() {
 	service := os.Args[1]
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
-	checkError(err)
+	check_Error(err)
 
-	conn, err := net.DialTCP("tcp", nil, tcpAddr)
-	checkError(err)
+	conn, err2 := net.DialTCP("tcp", nil, tcpAddr)
+	check_Error(err2)
 
 	message := &gochat.SignInReq{
 		user_name: "Goga",
@@ -39,23 +39,22 @@ func main() {
 		SignInReq: message,
 	}
 
-	payload, err := proto.Marshal(wrapper)
-	check_error(err)
+	payload, err3 := proto.Marshal(wrapper)
+	check_Error(err3)
 
-	_, err := conn.Write(payload)
-	check_error(err)
+	_, err4 := conn.Write(payload)
+	check_Error(err4)
 
-	result, err := ioutil.ReadAll(conn)
-	checkError(err)
+	result, err5 := ioutil.ReadAll(conn)
+	check_Error(err5)
 
 	response := &gochat.GenericMessage{}
-	err := proto.Unmarshal(result, response)
-	checkError(err)
+	err6 := proto.Unmarshal(result, response)
+	check_Error(err6)
 
 	if response.SignInResp.status == true {
 		fmt.Println("Authenticated with id: ", response.SignInResp.user_id)
-	}
-	else {
+	} else {
 		fmt.Println("Authentication failed!")
 	}
 
