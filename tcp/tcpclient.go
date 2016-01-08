@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ivan-golubev/go-chat/data-model"
+	"github.com/ivan-golubev/go-chat/model"
 )
 
 func check_Error(err error) {
@@ -30,12 +30,12 @@ func main() {
 	conn, err2 := net.DialTCP("tcp", nil, tcpAddr)
 	check_Error(err2)
 
-	message := &gochat.SignInReq{
+	message := &model.SignInReq{
 		user_name: "Goga",
 		password:  "Letme1n",
 	}
-	wrapper := &gochat.GenericMessage{
-		Type:      gochat.GenericMessage_SIGN_IN_REQ,
+	wrapper := &model.GenericMessage{
+		Type:      model.GenericMessage_SIGN_IN_REQ,
 		SignInReq: message,
 	}
 
@@ -48,11 +48,11 @@ func main() {
 	result, err5 := ioutil.ReadAll(conn)
 	check_Error(err5)
 
-	response := &gochat.GenericMessage{}
+	response := &model.GenericMessage{}
 	err6 := proto.Unmarshal(result, response)
 	check_Error(err6)
 
-	if response.SignInResp.status == true {
+	if response.SignInResp.Status == true {
 		fmt.Println("Authenticated with id: ", response.SignInResp.user_id)
 	} else {
 		fmt.Println("Authentication failed!")
