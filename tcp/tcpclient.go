@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 
@@ -31,8 +32,8 @@ func main() {
 	check_Error(err2)
 
 	message := &model.SignInReq{
-		user_name: "Goga",
-		password:  "Letme1n",
+		UserName: "Goga",
+		Password: "Letme1n",
 	}
 	wrapper := &model.GenericMessage{
 		Type:      model.GenericMessage_SIGN_IN_REQ,
@@ -53,7 +54,7 @@ func main() {
 	check_Error(err6)
 
 	if response.SignInResp.Status == true {
-		fmt.Println("Authenticated with id: ", response.SignInResp.user_id)
+		fmt.Println("Authenticated with id:", response.SignInResp.UserId, " and token:", response.SignInResp.Token)
 	} else {
 		fmt.Println("Authentication failed!")
 	}
