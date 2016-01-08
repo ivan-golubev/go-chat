@@ -5,7 +5,7 @@ import (
     "net"
     "os"
     "github.com/golang/protobuf/proto"
-    "github.com/ivan-golubev/go-chat/data-model"
+    "github.com/ivan-golubev/go-chat/model"
 )
 
 func check_error(err error) {
@@ -29,10 +29,10 @@ func main() {
         n, addr, err3 := conn.ReadFromUDP(buf)        
         check_error(err3) 
 
-        message := &gochat.GenericMessage{}
+        message := &model.GenericMessage{}
 		err4 := proto.Unmarshal(buf[0:n], message)
 		check_error(err4)
-		if (message.Type == gochat.GenericMessage_TEXT) {
+		if (message.Type == model.GenericMessage_TEXT) {
 			fmt.Println("Received text message: ", message.TextMessage.Text, " from ", addr)
 		}
     }

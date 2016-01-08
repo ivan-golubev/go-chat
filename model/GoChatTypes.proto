@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gochat;
+package model;
 
 message TextMessage {	
 	string message_uid = 1;

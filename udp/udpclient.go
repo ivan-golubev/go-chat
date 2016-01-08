@@ -5,7 +5,7 @@ import (
     "net"
     "os"
     "github.com/golang/protobuf/proto"
-    "github.com/ivan-golubev/go-chat/data-model"
+    "github.com/ivan-golubev/go-chat/model"
 )
 
 func check_error(err error) {
@@ -20,14 +20,14 @@ func main() {
 	check_error(err)
 	defer conn.Close()
 
-    message := &gochat.TextMessage {
+    message := &model.TextMessage {
         MessageUid: "message-id",
         SenderId: 42,        
         Timestamp: 100500,
         Text: "This is the message text",
     }
-    wrapper := &gochat.GenericMessage {
-        Type: gochat.GenericMessage_TEXT,
+    wrapper := &model.GenericMessage {
+        Type: model.GenericMessage_TEXT,
         TextMessage: message,
     }
 
