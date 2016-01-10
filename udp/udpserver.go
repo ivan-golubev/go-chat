@@ -1,4 +1,4 @@
-package main
+package udp
 
 import (
     "fmt"
@@ -13,25 +13,14 @@ import (
     "github.com/ivan-golubev/go-chat/model"
 )
 
-func check_error(err error) {
+func CheckError(err error) {
     if err != nil {
         fmt.Println("Error: " , err)
         os.Exit(0)
     }
 }
 
-func main() {
-    if len(os.Args) != 2 {
-        fmt.Fprintf(os.Stderr, "Please specify the port to listen: ")
-        os.Exit(1)
-    }
-
-    port, err := strconv.Atoi(os.Args[1])
-    check_error(err)
-    start_udp_server(port)
-}
-
-func start_udp_server(port int) {
+func StartUdpServer(port int) {
     wg := &sync.WaitGroup{}
 
     /* a channel for messages and channel for quit */
@@ -64,9 +53,9 @@ func listen(port int, messages chan<- *InputMessage, quit <-chan int, wg *sync.W
     defer wg.Done()
 
     server_addr, err1 := net.ResolveUDPAddr("udp", ":" + strconv.Itoa(port))
-    check_error(err1)
+    CheckError(err1)
     conn, err2 := net.ListenUDP("udp", server_addr)
-    check_error(err2)
+    CheckError(err2)
     defer conn.Close()
  
     // TODO: read message size from udp first
@@ -87,10 +76,10 @@ func listen(port int, messages chan<- *InputMessage, quit <-chan int, wg *sync.W
             continue // operation timeout, should not terminate the program
         }
 
-        check_error(err3) 
+        CheckError(err3) 
         generic_message := &model.GenericMessage{}
         err4 := proto.Unmarshal(buf[0:n], generic_message)        
-        check_error(err4)
+        CheckError(err4)
         wrapped_message := &InputMessage {
             message: generic_message,
             address: fmt.Sprint(addr),

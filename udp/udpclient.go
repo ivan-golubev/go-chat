@@ -1,9 +1,8 @@
-package main
+package udp
 
 import (
     "fmt"
     "net"
-    "os"
     "time"
     "strconv"
     "github.com/golang/protobuf/proto"
@@ -11,31 +10,9 @@ import (
     "crypto/rand"
 )
 
-func check_error(err error) {
-    if err  != nil {
-        fmt.Println("Error: " , err)
-        os.Exit(0)
-    }
-}
-
-func main() {
-    if len(os.Args) != 3 {
-        fmt.Fprintf(os.Stderr, "Please specify the destination ip and port. ")
-        os.Exit(1)
-    }
-
-    address := os.Args[1]    
-    port, err := strconv.Atoi(os.Args[2])
-    check_error(err)
-
-
-    message_id := send_message(address, port, "This is the message text", 42)
-    fmt.Println("Sent a message with id: " + message_id)
-}
-
-func send_message(ip string, port int, text string, sender_id int32) (string) {
+func SendMessage(ip string, port int, text string, sender_id int32) (string) {
     conn, err := net.Dial("udp", ip + ":" + strconv.Itoa(port))
-    check_error(err)
+    CheckError(err)
     defer conn.Close()
 
     message_id := pseudo_uuid()
@@ -51,10 +28,10 @@ func send_message(ip string, port int, text string, sender_id int32) (string) {
     }
 
     payload, err2 := proto.Marshal(wrapper)
-    check_error(err2)
+    CheckError(err2)
 
     _, err3 := conn.Write(payload)
-    check_error(err3)
+    CheckError(err3)
     return message_id
 }
 
