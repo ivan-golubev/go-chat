@@ -2,7 +2,12 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"os"
+	"bufio"
+	"time"
 	"github.com/ivan-golubev/go-chat/console"
+	"github.com/ivan-golubev/go-chat/udp"
 )
 
 var fsm State = &InitState{}
@@ -46,8 +51,25 @@ type AuthenticatedState struct {
 	user_id int
 }
 func (this *AuthenticatedState) Init(){
+	port := 10001
 	console.Clear_cmd()
 	fmt.Printf("\nWelcome %s!\n", this.user_name)
+	wg := &sync.WaitGroup{}
+	udp.StartUdpServer(port, wg)
+
+	for {
+		time.Sleep(time.Second * 2)
+		reader := bufio.NewReader(os.Stdin)
+
+		fmt.Println("\nEnter the message to send: ")
+		message_text, err := reader.ReadString('\n')
+		udp.CheckError(err)
+
+		address := "192.168.1.3"
+		message_id := udp.SendMessage(address, port, message_text, 42)
+		fmt.Println("Sent a message with id: " + message_id)
+	}
+	wg.Wait()
 }
 func (this *AuthenticatedState) LoginSuccess(_ string, _ int){}
 func (this *AuthenticatedState) LoginFailed(){}

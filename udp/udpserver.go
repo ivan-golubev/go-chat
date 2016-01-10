@@ -20,9 +20,7 @@ func CheckError(err error) {
     }
 }
 
-func StartUdpServer(port int) {
-    wg := &sync.WaitGroup{}
-
+func StartUdpServer(port int, wg *sync.WaitGroup) {
     /* a channel for messages and channel for quit */
     c := make(chan *InputMessage)
     quit := make(chan int)
@@ -41,7 +39,6 @@ func StartUdpServer(port int) {
 
     /* wait for all workers to stop */
     wg.Add(2)
-    wg.Wait()
 }
 
 type InputMessage struct {
