@@ -21,13 +21,24 @@ func check_error(err error) {
 }
 
 func main() {
+    if len(os.Args) != 2 {
+        fmt.Fprintf(os.Stderr, "Please specify the port to listen: ")
+        os.Exit(1)
+    }
+
+    port, err := strconv.Atoi(os.Args[1])
+    check_error(err)
+    start_udp_server(port)
+}
+
+func start_udp_server(port int) {
     wg := &sync.WaitGroup{}
 
     /* a channel for messages and channel for quit */
-    c := make(chan *model.GenericMessage)
+    c := make(chan *InputMessage)
     quit := make(chan int)
     
-    go listen(10000, c, quit, wg)
+    go listen(port, c, quit, wg)
     go process_messages(c, quit, wg)
 
     // Handle SIGINT and SIGTERM.
@@ -44,7 +55,12 @@ func main() {
     wg.Wait()
 }
 
-func listen(port int, messages chan<- *model.GenericMessage, quit <-chan int, wg *sync.WaitGroup) {
+type InputMessage struct {
+    message *model.GenericMessage
+    address string
+}
+
+func listen(port int, messages chan<- *InputMessage, quit <-chan int, wg *sync.WaitGroup) {
     defer wg.Done()
 
     server_addr, err1 := net.ResolveUDPAddr("udp", ":" + strconv.Itoa(port))
@@ -65,34 +81,40 @@ func listen(port int, messages chan<- *model.GenericMessage, quit <-chan int, wg
         }
         conn.SetDeadline(time.Now().Add(1e9))
 
-        n, _, err3 := conn.ReadFromUDP(buf) // addr is _ for now
+        n, addr, err3 := conn.ReadFromUDP(buf)
 
         if opErr, ok := err3.(*net.OpError); ok && opErr.Timeout() {
             continue // operation timeout, should not terminate the program
         }
 
         check_error(err3) 
-        message := &model.GenericMessage{}
-        err4 := proto.Unmarshal(buf[0:n], message)
+        generic_message := &model.GenericMessage{}
+        err4 := proto.Unmarshal(buf[0:n], generic_message)        
         check_error(err4)
-        messages <- message        
+        wrapped_message := &InputMessage {
+            message: generic_message,
+            address: fmt.Sprint(addr),
+        }        
+        messages <- wrapped_message
     }
 }
 
-func process_messages(messages <-chan *model.GenericMessage, quit <-chan int, wg *sync.WaitGroup) {
+func process_messages(messages <-chan *InputMessage, quit <-chan int, wg *sync.WaitGroup) {
     defer wg.Done()
 
     for {
         select { // channel select
                 case <- quit:
-                fmt.Println("Stopping the message processor...")
-                return
+                    fmt.Println("Stopping the message processor...")
+                    return
 
-                case message := <- messages:
-                if (message.Type == model.GenericMessage_TEXT) {
-                    timestamp := fmt.Sprint(time.Unix(message.TextMessage.Timestamp, 0))
-                    fmt.Println("[Sent " + timestamp + "] Received text message: ", message.TextMessage.Text, " from ")
-                }
+                case wrapped_message := <- messages:                    
+                    message := wrapped_message.message
+                    if (message.Type == model.GenericMessage_TEXT) {
+                        timestamp := fmt.Sprint(time.Unix(message.TextMessage.Timestamp, 0))
+                        fmt.Println("[Sent " + timestamp + "] Received text message: ",
+                         message.TextMessage.Text, " from ", wrapped_message.address)
+                    }
         }
     }
 }
