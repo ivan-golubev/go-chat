@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"sync"
 	"os"
+	"os/signal"
 	"bufio"
 	"time"
+	"syscall"
 	"github.com/ivan-golubev/go-chat/console"
 	"github.com/ivan-golubev/go-chat/udp"
 )
@@ -54,22 +55,40 @@ func (this *AuthenticatedState) Init(){
 	port := 10001
 	console.Clear_cmd()
 	fmt.Printf("\nWelcome %s!\n", this.user_name)
-	wg := &sync.WaitGroup{}
-	udp.StartUdpServer(port, wg)
 
+	/* channel for quit */
+	quit_chan := make(chan int)
+	udp.StartUdpServer(port, quit_chan)
+
+	// Handle SIGINT and SIGTERM: graceful stop via Ctrl+c
+    ch := make(chan os.Signal, 1)
+    signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+    go func() {
+        <-ch
+        close(quit_chan) // send quit signal to all workers
+        os.Exit(1)
+    }()
+
+    /* main loop */
 	for {
 		time.Sleep(time.Second * 2)
-		reader := bufio.NewReader(os.Stdin)
+		choice := console.Choice("[1] Send message to myself [2] Quit")
+		if (choice == 1) {
+			reader := bufio.NewReader(os.Stdin)
 
-		fmt.Println("\nEnter the message to send: ")
-		message_text, err := reader.ReadString('\n')
-		udp.CheckError(err)
+			fmt.Println("\nEnter the message to send: ")
+			message_text, err := reader.ReadString('\n')
+			udp.CheckError(err)
 
-		address := "192.168.1.3"
-		message_id := udp.SendMessage(address, port, message_text, 42)
-		fmt.Println("Sent a message with id: " + message_id)
+			address := "192.168.1.3"
+			message_id := udp.SendMessage(address, port, message_text, 42)
+			fmt.Println("Sent a message with id: " + message_id)
+		} else if (choice == 2) {
+			/* graceful stop via user request */
+			close(quit_chan)
+			break
+		}
 	}
-	wg.Wait()
 }
 func (this *AuthenticatedState) LoginSuccess(_ string, _ int){}
 func (this *AuthenticatedState) LoginFailed(){}

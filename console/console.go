@@ -18,6 +18,21 @@ func check_error(err error) {
     }
 }
 
+func Choice(choice_text string) (int) {
+    for {
+        fmt.Println("What do you want to do?: ")
+        fmt.Println(choice_text)
+
+        var choice_num int
+        _, err := fmt.Scanf("%d", &choice_num)
+        if (nil != err) {
+            fmt.Println("Error: enter an integer number.")
+        } else {
+            return choice_num
+        }
+    }
+}
+
 func Credentials() (string, string) {
 	reader := bufio.NewReader(os.Stdin)
 

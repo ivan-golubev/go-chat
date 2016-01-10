@@ -5,10 +5,8 @@ import (
     "net"
     "os"
     "time"
-    "strconv"
-    "os/signal"
-    "sync"
-    "syscall"
+    "strconv"    
+    "sync"    
     "github.com/golang/protobuf/proto"
     "github.com/ivan-golubev/go-chat/model"
 )
@@ -20,25 +18,17 @@ func CheckError(err error) {
     }
 }
 
-func StartUdpServer(port int, wg *sync.WaitGroup) {
-    /* a channel for messages and channel for quit */
+func StartUdpServer(port int, quit <-chan int) {
+    wg := &sync.WaitGroup{}
+    /* a channel for messages */
     c := make(chan *InputMessage)
-    quit := make(chan int)
     
     go listen(port, c, quit, wg)
     go process_messages(c, quit, wg)
 
-    // Handle SIGINT and SIGTERM.
-    ch := make(chan os.Signal, 1)
-    signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-    go func() {
-        <-ch
-        close(quit) // send quit signal to all workers
-        os.Exit(1)
-    }()
-
     /* wait for all workers to stop */
     wg.Add(2)
+    // wg.Wait()
 }
 
 type InputMessage struct {
