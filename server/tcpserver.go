@@ -78,7 +78,7 @@ func processauth(uname, upass string) (userid int32, isAuthenticated, isNewUser 
 
 	// checking if user exists
 	var uid int32
-	err2 := db.QueryRow("SELECT id FROM users WHERE login=?", uname).Scan(&uid)
+	err2 := db.QueryRow("SELECT id FROM users WHERE login=$1", uname).Scan(&uid)
 	switch {
 	case err2 == sql.ErrNoRows:
 		fmt.Println("Non-existent user, registration is needed.")
