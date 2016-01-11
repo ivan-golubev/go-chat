@@ -89,7 +89,7 @@ func processauth(uname, upass string) (userid int32, isAuthenticated, isNewUser 
 	case err2 != nil:
 		checkError(err2)
 	default:
-		fmt.Println("User is found:%d", uid)
+		fmt.Println("User is found:", uid)
 		userid = uid
 		isAuthenticated = true
 		isNewUser = false
