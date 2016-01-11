@@ -1,13 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net"
 	"os"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ivan-golubev/go-chat/model"
+	_ "github.com/lib/pq"
 )
+
+const DB_CONNECT_STRING = "host=localhost port=5432 user=gochatdbr password=+VHS9q!dle+n dbname=gochat sslmode=disable"
 
 func checkError(err error) {
 	if err != nil {
@@ -30,31 +34,68 @@ func handleClient(conn net.Conn) {
 
 		if message.Type == model.GenericMessage_SIGN_IN_REQ {
 			fmt.Println("Received sign-in request. User:", message.SignInReq.UserName, " Password:", message.SignInReq.Password)
-			if message.SignInReq.UserName == "Goga" {
-				if message.SignInReq.Password == "Letme1n" {
-					fmt.Println("Authentication passed. Building sign-in response.")
+			loginid, isAuth, isNew := processauth(message.SignInReq.UserName, message.SignInReq.Password)
+			if isAuth == true && isNew == false {
+				fmt.Println("Authentication passed. Building sign-in response.")
 
-					resp := &model.SignInResp{
-						Status: true,
-						UserId: 1,
-						Token:  "ChatForFreeWithNoSMSNorAds",
-					}
-
-					wrapper := &model.GenericMessage{
-						Type:       model.GenericMessage_SIGN_IN_RESP,
-						SignInResp: resp,
-					}
-
-					payload, err3 := proto.Marshal(wrapper)
-					checkError(err3)
-
-					_, err4 := conn.Write(payload)
-					checkError(err4)
-					fmt.Println("Authentication response sent.")
+				resp := &model.SignInResp{
+					Status: true,
+					UserId: loginid,
+					Token:  "ChatForFreeWithNoSMSNorAds",
 				}
+
+				wrapper := &model.GenericMessage{
+					Type:       model.GenericMessage_SIGN_IN_RESP,
+					SignInResp: resp,
+				}
+
+				payload, err3 := proto.Marshal(wrapper)
+				checkError(err3)
+
+				_, err4 := conn.Write(payload)
+				checkError(err4)
+				fmt.Println("Authentication response sent.")
 			}
 		}
 	}
+}
+
+func processauth(uname, upass string) (userid int32, isAuthenticated, isNewUser bool) {
+	// opening db
+	db, err := sql.Open("postgres", DB_CONNECT_STRING)
+	defer db.Close()
+	if err != nil {
+		fmt.Printf("Database opening error -->%v\n", err)
+		panic("Database error")
+	}
+
+	// verifying db connectivity
+	err = db.Ping()
+	if err != nil {
+		fmt.Printf("Database check error -->%v\n", err)
+		panic("Database error")
+	}
+
+	// checking if user exists
+	var uid int32
+	err2 := db.QueryRow("SELECT id FROM users WHERE login=?", uname).Scan(&uid)
+	switch {
+	case err2 == sql.ErrNoRows:
+		fmt.Println("Non-existent user, registration is needed.")
+		userid = -1
+		isAuthenticated = false
+		isNewUser = true
+		return
+	case err2 != nil:
+		checkError(err2)
+	default:
+		fmt.Println("User is found:%d", uid)
+		userid = uid
+		isAuthenticated = true
+		isNewUser = false
+		return
+	}
+	return
 }
 
 func main() {
